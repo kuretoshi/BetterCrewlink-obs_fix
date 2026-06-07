@@ -63,6 +63,8 @@ export interface CanvasProps {
 	lookLeft: boolean;
 	size: number;
 	borderColor: string;
+	talking: boolean;
+	showborder?: boolean;
 	realColor: string[];
 	color: number;
 	overflow: boolean;
@@ -139,7 +141,9 @@ const Avatar: React.FC<AvatarProps> = function ({
 			isAlive={isAlive}
 			realColor={player.realColor}
 			lookLeft={lookLeft === true}
-			borderColor={talking ? borderColor : showborder === true ? '#ccbdcc86' : 'transparent'}
+			borderColor={borderColor}
+			talking={talking}
+			showborder={showborder}
 			size={size}
 			overflow={overflow}
 			usingRadio={isUsingRadio}
@@ -163,7 +167,6 @@ interface UseCanvasStylesParams {
 	};
 	lookLeft: boolean;
 	size: number;
-	borderColor: string;
 	paddingLeft: number;
 }
 const useCanvasStyles = makeStyles(() => ({
@@ -210,12 +213,18 @@ const useCanvasStyles = makeStyles(() => ({
 		position: 'relative',
 		borderStyle: 'solid',
 		transition: 'border-color .2s ease-out',
-		borderColor: ({ borderColor }: UseCanvasStylesParams) => borderColor,
+		borderColor: 'transparent',
 		borderWidth: ({ size }: UseCanvasStylesParams) => Math.max(2, size / 40),
 		transform: ({ lookLeft }: UseCanvasStylesParams) => (lookLeft ? 'scaleX(-1)' : 'scaleX(1)'),
 		width: '100%',
 		paddingBottom: '100%',
 		cursor: 'pointer',
+		'&.avatar-show-border': {
+			borderColor: '#ccbdcc86',
+		},
+		'&.avatar-talking': {
+			borderColor: 'var(--talking-border-color)',
+		},
 	},
 	radio: {
 		position: 'absolute',
@@ -237,6 +246,8 @@ function Canvas({
 	lookLeft,
 	size,
 	borderColor,
+	talking,
+	showborder,
 	color,
 	realColor,
 	overflow,
@@ -293,7 +304,6 @@ function Canvas({
 		dementions: hatImg.dementions,
 		lookLeft,
 		size,
-		borderColor,
 		paddingLeft: -7,
 	});
 	//@ts-ignore
@@ -314,13 +324,22 @@ function Canvas({
 			<img src={hatImg.hat_back} className={classes.hat} style={{ zIndex: 1 }} onError={onerror} onLoad={onload} />
 		</>
 	);
+	const avatarClassName = [
+		classes.avatar,
+		showborder === true ? 'avatar-show-border' : '',
+		talking ? 'avatar-talking' : '',
+	]
+		.filter(Boolean)
+		.join(' ');
+	const avatarStyle = { '--talking-border-color': borderColor } as React.CSSProperties;
 
 	return (
 		<>
-			<div className={classes.avatar} onClick={onClick}>
+			<div className={avatarClassName} style={avatarStyle} onClick={onClick}>
 				<div
-					className={classes.avatar}
+					className={avatarClassName}
 					style={{
+						...avatarStyle,
 						overflow: 'hidden',
 						position: 'absolute',
 						top: Math.max(2, size / 40) * -1,
