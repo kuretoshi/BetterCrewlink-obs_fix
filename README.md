@@ -1,47 +1,55 @@
-# BetterCrewlink OBS overlay
+# BetterCrewLink OBS オーバーレイ
 
-<h2> <a href="https://obs.bettercrewlink.app"> Live app </a></h2>
+BetterCrewLink の状態を OBS ブラウザソース上に表示するための Web オーバーレイです。
 
+公開版:
 
-## Available Scripts
+- https://obs.bettercrewlink.app
 
-In the project directory, you can run:
+BetterCrewLink 本体からボイスサーバー経由で送られてくるプレイヤー状態を受け取り、発話状態、死亡状態、プレイヤー名、アバターなどを描画します。
 
-### `yarn start`
+## 使い方
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+BetterCrewLink 側で OBS ブラウザーオーバーレイを有効にすると、設定画面に OBS ブラウザソース用 URL が表示されます。
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+OBS の「ブラウザ」ソースにその URL を設定すると、BetterCrewLink の状態がオーバーレイとして表示されます。
 
-### `yarn test`
+## 開発
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+依存関係をインストールします。
 
-### `yarn build`
+```bash
+yarn install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+開発サーバーを起動します。
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+yarn start
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+ブラウザで http://localhost:3000 を開くと確認できます。
 
-### `yarn eject`
+## ビルド
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+本番用の静的ファイルを生成します。
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+yarn build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+生成物は `build` フォルダに出力されます。
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## テスト
 
-## Learn More
+```bash
+yarn test
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 注意
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+このリポジトリは OBS オーバーレイの表示側です。
+
+BetterCrewLink 本体のボイス処理やゲーム状態取得は、BetterCrewLink 本体側のリポジトリで管理されています。
+
+アバター画像や帽子などの素材は、主に `BetterCrewLink-Hats` 側の素材を参照します。
