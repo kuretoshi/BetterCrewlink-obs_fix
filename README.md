@@ -1,12 +1,24 @@
-# BetterCrewLink OBS オーバーレイ
+# BetterCrewLink OBS オーバーレイ fork版
 
-BetterCrewLink の状態を OBS ブラウザソース上に表示するための Web オーバーレイです。
+このリポジトリは、`OhMyGuus/BetterCrewlink-obs` をフォークしたものです。
 
-公開版:
+BetterCrewLink の状態を OBS ブラウザソース上に表示するための Web オーバーレイをベースに、表示調整や独自修正を行うために管理しています。
+
+元リポジトリ:
+
+- https://github.com/OhMyGuus/BetterCrewlink-obs
+
+本家公開版:
 
 - https://obs.bettercrewlink.app
 
 BetterCrewLink 本体からボイスサーバー経由で送られてくるプレイヤー状態を受け取り、発話状態、死亡状態、プレイヤー名、アバターなどを描画します。
+
+## このforkでの主な変更
+
+- 発話中のアバター枠を `border-color` の直接切り替えではなく、`avatar-talking` クラス付与で制御するように変更
+- 通常表示用の薄い枠を `avatar-show-border` クラスで制御
+- CSS側から発話状態の見た目を調整しやすいように整理
 
 ## 使い方
 
