@@ -4,7 +4,8 @@ import makeStyles from "@material-ui/core/styles/makeStyles";
 import "./App.css";
 import Avatar from "./Avatar";
 import { ISettings } from "./common/ISettings";
-import io from "socket.io-client";
+import ioV2 from "socket.io-client";
+import { io as ioV4 } from "socket.io-client-v4";
 
 export interface playerContainerCss extends CSSProperties {
   '--size': string;
@@ -20,6 +21,13 @@ interface signalData {
   to: string;
   data: VoiceState;
 }
+
+type CompatibleSocket = {
+  connected?: boolean;
+  disconnect: () => void;
+  emit: (event: string, ...args: any[]) => void;
+  on: (event: string, callback: (...args: any[]) => void) => void;
+};
 
 const useStyles = makeStyles(() => ({
   meetingHud: {
@@ -112,27 +120,79 @@ const App: React.FC = function () {
     console.log("GOT SETTINGS: ", settings, settings.secretString.length);
 
     console.log("called useffect..");
-    const socket = io(settings.serverURL, {
-      transports: ["websocket"],
-    });
+    let socket: CompatibleSocket | undefined;
+    let fallbackTimer: number | undefined;
+    let disposed = false;
+    let fallbackStarted = false;
 
-    socket.on("connect", () => {
-      console.log("[socketIO] connect");
-      socket.emit(
+    const joinRoom = (connectedSocket: CompatibleSocket) => {
+      connectedSocket.emit(
         "join",
         settings.secretString,
         Math.floor(Math.random() * 20 + 0),
         Math.floor(Math.random() * 396 + 59000)
       );
-    });
-    socket.on("disconnect", () => {
-      console.log("[socketIO] disconnect");
-    });
+    };
 
-    socket.on("signal", (data: signalData) => {
-      setVoiceState(data.data);
+    const bindSocketEvents = (
+      connectedSocket: CompatibleSocket,
+      socketIoVersion: "4" | "2.4.0"
+    ) => {
+      socket = connectedSocket;
+      connectedSocket.on("connect", () => {
+        console.log(`[socketIO v${socketIoVersion}] connect`);
+        if (fallbackTimer) {
+          window.clearTimeout(fallbackTimer);
+          fallbackTimer = undefined;
+        }
+        joinRoom(connectedSocket);
+      });
+      connectedSocket.on("disconnect", () => {
+        console.log(`[socketIO v${socketIoVersion}] disconnect`);
+      });
+      connectedSocket.on("signal", (data: signalData) => {
+        setVoiceState(data.data);
+      });
+    };
+
+    const connectWithSocketIo2 = (reason: string) => {
+      if (disposed || fallbackStarted) return;
+      fallbackStarted = true;
+      if (fallbackTimer) {
+        window.clearTimeout(fallbackTimer);
+        fallbackTimer = undefined;
+      }
+      console.warn(`[socketIO] v4 connection failed (${reason}); falling back to v2.4.0`);
+      socket?.disconnect();
+      bindSocketEvents(
+        ioV2(settings.serverURL, {
+          transports: ["websocket"],
+        }) as CompatibleSocket,
+        "2.4.0"
+      );
+    };
+
+    const socketV4 = ioV4(settings.serverURL, {
+      transports: ["websocket"],
+      timeout: 2500,
+      reconnectionAttempts: 1,
+    }) as CompatibleSocket;
+
+    bindSocketEvents(socketV4, "4");
+    socketV4.on("connect_error", (error: Error) => {
+      connectWithSocketIo2(error.message);
     });
+    fallbackTimer = window.setTimeout(() => {
+      if (!socketV4.connected) connectWithSocketIo2("timeout");
+    }, 3500);
+
     loaded = true;
+
+    return () => {
+      disposed = true;
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
+      socket?.disconnect();
+    };
   }, []);
 
 
