@@ -76,6 +76,7 @@ function useWindowSize() {
 
 const iPadRatio = 854 / 579;
 const query = new URLSearchParams(window.location.search.substring(1));
+const overlayVersion = query.get("version") || "DEV";
 let loaded = false;
 const App: React.FC = function () {
   const [voiceState, setVoiceState] = useState<VoiceState>({
@@ -227,6 +228,12 @@ const App: React.FC = function () {
   }
   return (
     <>
+      <OverlayWatermark
+        serverURL={settings.serverURL}
+        lowered={voiceState.mod === "SUPER_NEW_ROLES"}
+        inGame={voiceState.overlayState.gameState === GameState.TASKS}
+        mod={voiceState.mod}
+      />
       {settings.meetingOverlay &&
         voiceState.overlayState.gameState === GameState.DISCUSSION && (
           <MeetingHud
@@ -244,6 +251,33 @@ const App: React.FC = function () {
         />
       )}
     </>
+  );
+};
+
+interface OverlayWatermarkProps {
+  serverURL: string;
+  lowered: boolean;
+  inGame: boolean;
+  mod: ModsType;
+}
+
+const OverlayWatermark: React.FC<OverlayWatermarkProps> = ({
+  serverURL,
+  lowered,
+  inGame,
+  mod,
+}: OverlayWatermarkProps) => {
+  const isNoS = mod === "NoS";
+
+  return (
+    <div
+      className={`tanuki-overlay-watermark${lowered ? " tanuki-overlay-watermark_snr" : ""}${
+        inGame ? " tanuki-overlay-watermark_game" : ""
+      }${isNoS ? " tanuki-overlay-watermark_nos" : ""}`}
+    >
+      <div>TanukiBCL v{overlayVersion}</div>
+      <div>{serverURL}</div>
+    </div>
   );
 };
 

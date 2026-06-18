@@ -48,9 +48,11 @@ export interface VoiceState {
 
 export type ModsType =
 	| 'NONE'
+	| 'SUPER_NEW_ROLES'
 	| 'TOWN_OF_IMPOSTORS'
 	| 'TOWN_OF_US'
 	| 'THE_OTHER_ROLES'
 	| 'EXTRA_ROLES'
 	| 'POLUS_GG'
+	| 'NoS'
 	| 'OTHER';
