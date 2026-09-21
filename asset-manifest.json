@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/BetterCrewlink-obs_fix/static/css/main.4501b8bc.chunk.css",
+    "main.js": "/BetterCrewlink-obs_fix/static/js/main.2e06cd79.chunk.js",
+    "main.js.map": "/BetterCrewlink-obs_fix/static/js/main.2e06cd79.chunk.js.map",
+    "runtime-main.js": "/BetterCrewlink-obs_fix/static/js/runtime-main.23a891bd.js",
+    "runtime-main.js.map": "/BetterCrewlink-obs_fix/static/js/runtime-main.23a891bd.js.map",
+    "static/js/2.82a0111c.chunk.js": "/BetterCrewlink-obs_fix/static/js/2.82a0111c.chunk.js",
+    "static/js/2.82a0111c.chunk.js.map": "/BetterCrewlink-obs_fix/static/js/2.82a0111c.chunk.js.map",
+    "static/js/3.b93020cc.chunk.js": "/BetterCrewlink-obs_fix/static/js/3.b93020cc.chunk.js",
+    "static/js/3.b93020cc.chunk.js.map": "/BetterCrewlink-obs_fix/static/js/3.b93020cc.chunk.js.map",
+    "index.html": "/BetterCrewlink-obs_fix/index.html",
+    "static/css/main.4501b8bc.chunk.css.map": "/BetterCrewlink-obs_fix/static/css/main.4501b8bc.chunk.css.map",
+    "static/js/2.82a0111c.chunk.js.LICENSE.txt": "/BetterCrewlink-obs_fix/static/js/2.82a0111c.chunk.js.LICENSE.txt",
+    "static/media/radio.8e9112cb.svg": "/BetterCrewlink-obs_fix/static/media/radio.8e9112cb.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.23a891bd.js",
+    "static/js/2.82a0111c.chunk.js",
+    "static/css/main.4501b8bc.chunk.css",
+    "static/js/main.2e06cd79.chunk.js"
+  ]
+}
