@@ -38,6 +38,12 @@ export function numberToColorHex(colour: number): string {
     );
 }
 
+export function getAvatarColors(realColor: string[], nosColor?: string): string[] {
+    if (nosColor === undefined) return realColor;
+
+    return [nosColor, Color(nosColor).darken(0.35).hex()];
+}
+
 function rgb2hsv(r: number, g: number, b: number) {
     let v = Math.max(r, g, b), c = v - Math.min(r, g, b);
     let h = c && ((v == r) ? (g - b) / c : ((v == g) ? 2 + (b - r) / c : 4 + (r - g) / c));

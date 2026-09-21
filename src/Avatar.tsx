@@ -16,6 +16,7 @@ import WifiOff from '@material-ui/icons/WifiOff';
 import LinkOff from '@material-ui/icons/LinkOff';
 import ErrorOutline from '@material-ui/icons/ErrorOutline'; //@ts-ignore
 import RadioSVG from './static/radio.svg';
+import { getAvatarColors } from './common/AvatarGenerator';
 
 
 const useStyles = makeStyles(() => ({
@@ -139,7 +140,7 @@ const Avatar: React.FC<AvatarProps> = function ({
 			visor={showHat === false ? '' : player.visorId}
 			skin={player.skinId}
 			isAlive={isAlive}
-			realColor={player.realColor}
+			realColor={getAvatarColors(player.realColor, player.nosColor)}
 			lookLeft={lookLeft === true}
 			borderColor={borderColor}
 			talking={talking}
@@ -297,7 +298,7 @@ function Canvas({
 				skin: getHatDementions(skin, mod),
 			},
 		});
-	}, [color, hat, skin, visor, initializedHats, isAlive]);
+	}, [color, hat, skin, visor, initializedHats, isAlive, realColor[0], realColor[1]]);
 
 	const classes = useCanvasStyles({
 		isAlive,

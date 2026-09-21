@@ -6,6 +6,7 @@ import Avatar from "./Avatar";
 import { ISettings } from "./common/ISettings";
 import ioV2 from "socket.io-client";
 import { io as ioV4 } from "socket.io-client-v4";
+import { getAvatarColors } from "./common/AvatarGenerator";
 
 export interface playerContainerCss extends CSSProperties {
   '--size': string;
@@ -456,7 +457,8 @@ const MeetingHud: React.FC<MeetingHudProps> = ({
   const overlays = players.map((player) => {
    
 
-    const color = (!player.realColor || player.realColor.length == 0)? "#0000" : player.realColor[0];
+    const avatarColors = getAvatarColors(player.realColor, player.nosColor);
+    const color = (!avatarColors || avatarColors.length == 0)? "#0000" : avatarColors[0];
 
     return (
       <div

@@ -20,6 +20,7 @@ export interface overlayPlayer {
 	bugged: boolean;
 	connected: boolean;
 	realColor: string[];
+	nosColor?: string;
 	shiftedColor: number;
 }
 
