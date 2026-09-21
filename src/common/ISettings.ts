@@ -3,5 +3,6 @@ export interface ISettings {
   overlayPosition: string;
   meetingOverlay: boolean;
   serverURL: string;
+  version: string;
   secretString: string | undefined;
 }

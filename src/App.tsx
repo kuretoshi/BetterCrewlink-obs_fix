@@ -76,7 +76,6 @@ function useWindowSize() {
 }
 
 const query = new URLSearchParams(window.location.search.substring(1));
-const overlayVersion = query.get("version") || "DEV";
 let loaded = false;
 const App: React.FC = function () {
   const [voiceState, setVoiceState] = useState<VoiceState>({
@@ -96,6 +95,7 @@ const App: React.FC = function () {
     overlayPosition: "right",
     meetingOverlay: true,
     serverURL: "",
+    version: "DEV",
     secretString: undefined
   });
 
@@ -110,6 +110,7 @@ const App: React.FC = function () {
       overlayPosition: query.get("position") || "right",
       meetingOverlay: query.get("meeting") === "1",
       serverURL: server || "https://bettercrewl.ink",
+      version: query.get("version") || "DEV",
       secretString: query.get("secret") || undefined,
       mod: query.get("mod") ?? ""
     };
@@ -230,6 +231,7 @@ const App: React.FC = function () {
     <>
       <OverlayWatermark
         serverURL={settings.serverURL}
+        version={settings.version}
         lowered={voiceState.mod === "SUPER_NEW_ROLES"}
         inGame={voiceState.overlayState.gameState === GameState.TASKS}
         mod={voiceState.mod}
@@ -256,6 +258,7 @@ const App: React.FC = function () {
 
 interface OverlayWatermarkProps {
   serverURL: string;
+  version: string;
   lowered: boolean;
   inGame: boolean;
   mod: ModsType;
@@ -263,6 +266,7 @@ interface OverlayWatermarkProps {
 
 const OverlayWatermark: React.FC<OverlayWatermarkProps> = ({
   serverURL,
+  version,
   lowered,
   inGame,
   mod,
@@ -275,7 +279,7 @@ const OverlayWatermark: React.FC<OverlayWatermarkProps> = ({
         inGame ? " tanuki-overlay-watermark_game" : ""
       }${isNoS ? " tanuki-overlay-watermark_nos" : ""}`}
     >
-      <div>TanukiBCL v{overlayVersion}</div>
+      <div>TanukiBCL v{version}</div>
       <div>{serverURL}</div>
     </div>
   );
