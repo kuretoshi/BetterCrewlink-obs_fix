@@ -75,7 +75,6 @@ function useWindowSize() {
   return windowSize;
 }
 
-const iPadRatio = 854 / 579;
 const query = new URLSearchParams(window.location.search.substring(1));
 const overlayVersion = query.get("version") || "DEV";
 let loaded = false;
@@ -306,8 +305,8 @@ const AvatarOverlay: React.FC<AvatarOverlayProps> = ({
   const classnames: string[] = ["overlay-wrapper"];
 
   if (
-    gameState.gameState == GameState.UNKNOWN ||
-    gameState.gameState == GameState.MENU
+    gameState.gameState === GameState.UNKNOWN ||
+    gameState.gameState === GameState.MENU
   ) {
     classnames.push("gamestate_menu");
   } else {
@@ -342,7 +341,7 @@ const AvatarOverlay: React.FC<AvatarOverlayProps> = ({
         return a.id - b.id;
       });
     return playerss;
-  }, [gameState.players]);
+  }, [gameState.players, voiceState.localIsAlive, voiceState.otherDead]);
   // console.log(gameState.players);
   players?.forEach((player) => {
     if (
@@ -451,14 +450,14 @@ const MeetingHud: React.FC<MeetingHudProps> = ({
       }
       return a.id - b.id;
     });
-  }, [gameState.gameState]);
+  }, [gameState.players]);
 
   if (!players || gameState.gameState !== GameState.DISCUSSION) return null;
   const overlays = players.map((player) => {
    
 
     const avatarColors = getAvatarColors(player.realColor, player.nosColor);
-    const color = (!avatarColors || avatarColors.length == 0)? "#0000" : avatarColors[0];
+    const color = (!avatarColors || avatarColors.length === 0)? "#0000" : avatarColors[0];
 
     return (
       <div

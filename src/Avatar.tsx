@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ModsType, overlayPlayer } from './common/AmongUsState';
 import {
 	getCosmetic,
@@ -282,23 +282,31 @@ function Canvas({
 		},
 	})
 
-	useMemo(async () => {
+	useEffect(() => {
 		if (!initializedHats) {
 			initializeHats();
 		}
-		setHatImg({
-			base: await getCosmetic(realColor, isAlive, cosmeticType.base),
-			hat_front: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, hat, mod),
-			hat_back: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat_back, hat, mod),
-			skin: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, skin, mod),
-			visor: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, visor, mod),
-			dementions: {
-				hat: getHatDementions(hat, mod),
-				visor: getHatDementions(visor, mod),
-				skin: getHatDementions(skin, mod),
-			},
-		});
-	}, [color, hat, skin, visor, initializedHats, isAlive, realColor[0], realColor[1]]);
+		let disposed = false;
+		const loadHatImages = async () => {
+			const nextHatImg = {
+				base: await getCosmetic(realColor, isAlive, cosmeticType.base),
+				hat_front: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, hat, mod),
+				hat_back: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat_back, hat, mod),
+				skin: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, skin, mod),
+				visor: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, visor, mod),
+				dementions: {
+					hat: getHatDementions(hat, mod),
+					visor: getHatDementions(visor, mod),
+					skin: getHatDementions(skin, mod),
+				},
+			};
+			if (!disposed) setHatImg(nextHatImg);
+		};
+		loadHatImages();
+		return () => {
+			disposed = true;
+		};
+	}, [color, hat, skin, visor, isAlive, realColor, mod]);
 
 	const classes = useCanvasStyles({
 		isAlive,
@@ -319,10 +327,10 @@ function Canvas({
 
 	const hatElement = (
 		<>
-			<img src={hatImg.hat_front} className={classes.hat} onError={onerror} onLoad={onload} />
-			<img src={hatImg.visor} className={classes.visor} onError={onerror} onLoad={onload} />
+			<img src={hatImg.hat_front} className={classes.hat} onError={onerror} onLoad={onload} alt="" />
+			<img src={hatImg.visor} className={classes.visor} onError={onerror} onLoad={onload} alt="" />
 
-			<img src={hatImg.hat_back} className={classes.hat} style={{ zIndex: 1 }} onError={onerror} onLoad={onload} />
+			<img src={hatImg.hat_back} className={classes.hat} style={{ zIndex: 1 }} onError={onerror} onLoad={onload} alt="" />
 		</>
 	);
 	const avatarClassName = [
@@ -356,13 +364,14 @@ function Canvas({
 							e.target.onError = null;
 							e.target.src = redAlive;
 						}}
+						alt=""
 					/>
 
-					<img src={hatImg.skin} className={classes.skin} onError={onerror} onLoad={onload} />
+					<img src={hatImg.skin} className={classes.skin} onError={onerror} onLoad={onload} alt="" />
 					{overflow && hatElement}
 				</div>
 				{!overflow && hatElement}
-				{usingRadio && <img src={RadioSVG} className={classes.radio} />}
+				{usingRadio && <img src={RadioSVG} className={classes.radio} alt="" />}
 			</div>
 		</>
 	);
