@@ -5,7 +5,6 @@ import {
 	redAlive,
 	cosmeticType,
 	getHatDementions,
-	initializedHats,
 	initializeHats,
 	HatDementions,
 } from "./common/cosmetics";
@@ -282,18 +281,31 @@ function Canvas({
 		},
 	})
 
+	const primaryColor = realColor[0];
+	const secondaryColor = realColor[1];
 	useEffect(() => {
-		if (!initializedHats) {
-			initializeHats();
-		}
 		let disposed = false;
 		const loadHatImages = async () => {
+			const colors = [primaryColor, secondaryColor];
+			const basePromise = getCosmetic(colors, isAlive, cosmeticType.base);
+			const hatsReady = initializeHats().catch((error) => {
+				console.error('Unable to load overlay cosmetics', error);
+			});
+			const base = await basePromise;
+			if (!disposed) setHatImg((previous) => ({ ...previous, base }));
+			await hatsReady;
+			const [hat_front, hat_back, skinImage, visorImage] = await Promise.all([
+				getCosmetic(colors, isAlive, cosmeticType.hat, hat, mod),
+				getCosmetic(colors, isAlive, cosmeticType.hat_back, hat, mod),
+				getCosmetic(colors, isAlive, cosmeticType.hat, skin, mod),
+				getCosmetic(colors, isAlive, cosmeticType.hat, visor, mod),
+			]);
 			const nextHatImg = {
-				base: await getCosmetic(realColor, isAlive, cosmeticType.base),
-				hat_front: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, hat, mod),
-				hat_back: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat_back, hat, mod),
-				skin: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, skin, mod),
-				visor: !initializedHats ? '' : await getCosmetic(realColor, isAlive, cosmeticType.hat, visor, mod),
+				base,
+				hat_front,
+				hat_back,
+				skin: skinImage,
+				visor: visorImage,
 				dementions: {
 					hat: getHatDementions(hat, mod),
 					visor: getHatDementions(visor, mod),
@@ -306,7 +318,7 @@ function Canvas({
 		return () => {
 			disposed = true;
 		};
-	}, [color, hat, skin, visor, isAlive, realColor, mod]);
+	}, [color, hat, skin, visor, isAlive, primaryColor, secondaryColor, mod]);
 
 	const classes = useCanvasStyles({
 		isAlive,
