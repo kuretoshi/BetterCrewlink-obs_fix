@@ -42,21 +42,27 @@ export interface HatDementions {
 	width: string;
 }
 
-let requestingHats = false;
 export var initializedHats = false;
+let hatsPromise: Promise<void> | undefined;
 
-export function initializeHats() {
-	if (initializedHats || requestingHats) {
-		return;
+export function initializeHats(): Promise<void> {
+	if (initializedHats) return Promise.resolve();
+	if (!hatsPromise) {
+		hatsPromise = fetch(`${HAT_COLLECTION_URL}/hats.json`)
+			.then((response) => {
+				if (!response.ok) throw new Error(`Unable to load cosmetics: ${response.status}`);
+				return response.json();
+			})
+			.then((data) => {
+				hatCollection = data;
+				initializedHats = true;
+			})
+			.catch((error) => {
+				hatsPromise = undefined;
+				throw error;
+			});
 	}
-	requestingHats = true;
-	fetch(`${HAT_COLLECTION_URL}/hats.json`)
-		.then((response) => response.json())
-		.then((data) => {
-			hatCollection = data;
-			initializedHats = true;
-		});
-	return undefined;
+	return hatsPromise;
 }
 
 const HAT_COLLECTION_URL = 'https://raw.githubusercontent.com/OhMyGuus/BetterCrewlink-Hats/master';

@@ -14,6 +14,8 @@ export interface overlayPlayer {
 	hatId: string;
 	petId: string;
 	skinId: string;
+	skinSource?: string;
+	bodyMaskSource?: string;
 	visorId: string;
 	disconnected: boolean;
 	isLocal: boolean;
@@ -38,6 +40,7 @@ export interface OtherTalking {
 
 
 export interface VoiceState {
+	assetSession?: string;
 	overlayState: OverlayState
 	otherTalking: OtherTalking;
 	otherDead: OtherTalking;

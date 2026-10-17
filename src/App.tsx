@@ -19,8 +19,8 @@ interface UseStylesProps {
 }
 
 interface signalData {
-  to: string;
-  data: VoiceState;
+  from?: string;
+  data: VoiceState | { type: 'obs-cosmetic'; source: string; png: string };
 }
 
 type CompatibleSocket = {
@@ -98,6 +98,7 @@ const App: React.FC = function () {
     version: "DEV",
     secretString: undefined
   });
+  const [cosmeticImages, setCosmeticImages] = useState<Record<string, string>>({});
 
   //   const socketRef = useRef<Socket | undefined>(undefined);
   useEffect(() => {
@@ -126,6 +127,27 @@ const App: React.FC = function () {
     let fallbackTimer: number | undefined;
     let disposed = false;
     let fallbackStarted = false;
+    let assetSession = '';
+    let activeSources = new Set<string>();
+    const receivedSources = new Set<string>();
+    const requestedAt = new Map<string, number>();
+    let senderSocketId = '';
+    const requestMissing = () => {
+      if (!socket?.connected || !senderSocketId || !assetSession) return;
+      const now = Date.now();
+      const sources = Array.from(activeSources).filter((source) => {
+        if (!/^((nos-cosmetic:\/\/image\/)|(snr-cosmetic:\/\/skin\/))/.test(source) || source.length > 512) return false;
+        if (receivedSources.has(source)) return false;
+        if (now - (requestedAt.get(source) || 0) < 1500) return false;
+        requestedAt.set(source, now);
+        return true;
+      }).slice(0, 4);
+      if (sources.length) socket.emit('signal', {
+        to: senderSocketId,
+        data: { type: 'obs-cosmetics-request', secret: settings.secretString, sources },
+      });
+    };
+    const retryTimer = window.setInterval(requestMissing, 1000);
 
     const joinRoom = (connectedSocket: CompatibleSocket) => {
       connectedSocket.emit(
@@ -153,7 +175,29 @@ const App: React.FC = function () {
         console.log(`[socketIO v${socketIoVersion}] disconnect`);
       });
       connectedSocket.on("signal", (data: signalData) => {
-        setVoiceState(data.data);
+        const payload = data?.data;
+        if (!payload || typeof payload !== 'object') return;
+        if ('type' in payload) {
+          if (payload.type !== 'obs-cosmetic' || !activeSources.has(payload.source) ||
+              typeof payload.png !== 'string' || !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(payload.png) ||
+              payload.png.length > 750000) return;
+          receivedSources.add(payload.source);
+          setCosmeticImages((old) => old[payload.source] === payload.png ? old : { ...old, [payload.source]: payload.png });
+          return;
+        }
+        if (!payload.overlayState?.players) return;
+        if (payload.assetSession !== assetSession) {
+          assetSession = payload.assetSession || '';
+          requestedAt.clear();
+          receivedSources.clear();
+          setCosmeticImages({});
+        }
+        activeSources = new Set(payload.overlayState.players.flatMap((player) =>
+          [player.skinSource, player.bodyMaskSource].filter((source): source is string => !!source)
+        ));
+        senderSocketId = data.from || '';
+        setVoiceState(payload);
+        requestMissing();
       });
     };
 
@@ -193,6 +237,7 @@ const App: React.FC = function () {
     return () => {
       disposed = true;
       if (fallbackTimer) window.clearTimeout(fallbackTimer);
+      window.clearInterval(retryTimer);
       socket?.disconnect();
     };
   }, []);
@@ -245,6 +290,7 @@ const App: React.FC = function () {
         )}
       {settings.overlayPosition !== "hidden" && (
         <AvatarOverlay
+          cosmeticImages={cosmeticImages}
           mod={voiceState.mod}
           voiceState={voiceState}
           gameState={voiceState.overlayState}
@@ -286,6 +332,7 @@ const OverlayWatermark: React.FC<OverlayWatermarkProps> = ({
 };
 
 interface AvatarOverlayProps {
+  cosmeticImages: Record<string, string>;
   voiceState: VoiceState;
   gameState: OverlayState;
   position: ISettings["overlayPosition"];
@@ -294,6 +341,7 @@ interface AvatarOverlayProps {
 }
 
 const AvatarOverlay: React.FC<AvatarOverlayProps> = ({
+  cosmeticImages,
   voiceState,
   gameState,
   position,
@@ -367,6 +415,8 @@ const AvatarOverlay: React.FC<AvatarOverlayProps> = ({
       <div key={player.id} className="player_wrapper">
         <div>
           <Avatar
+            customSkin={player.skinSource ? cosmeticImages[player.skinSource] : undefined}
+            bodyMask={player.bodyMaskSource ? cosmeticImages[player.bodyMaskSource] : undefined}
             key={player.id}
             // connectionState={!connected ? 'disconnected' : audio ? 'connected' : 'novoice'}
             player={player}
