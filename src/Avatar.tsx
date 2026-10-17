@@ -55,6 +55,8 @@ const useStyles = makeStyles(() => ({
 }));
 
 export interface CanvasProps {
+	customSkin?: string;
+	bodyMask?: string;
 	hat: string;
 	skin: string;
 	visor: string;
@@ -74,6 +76,8 @@ export interface CanvasProps {
 }
 
 export interface AvatarProps {
+	customSkin?: string;
+	bodyMask?: string;
 	talking: boolean;
 	borderColor: string;
 	isAlive: boolean;
@@ -92,6 +96,8 @@ export interface AvatarProps {
 }
 
 const Avatar: React.FC<AvatarProps> = function ({
+	customSkin,
+	bodyMask,
 	talking,
 	deafened,
 	muted,
@@ -133,6 +139,8 @@ const Avatar: React.FC<AvatarProps> = function ({
 
 	const canvas = (
 		<Canvas
+			customSkin={customSkin}
+			bodyMask={bodyMask}
 			className={classes.canvas}
 			color={player.colorId}
 			hat={showHat === false ? '' : player.hatId}
@@ -239,6 +247,8 @@ const useCanvasStyles = makeStyles(() => ({
 }));
 
 function Canvas({
+	customSkin,
+	bodyMask,
 	hat,
 	skin,
 	visor,
@@ -297,7 +307,7 @@ function Canvas({
 			const [hat_front, hat_back, skinImage, visorImage] = await Promise.all([
 				getCosmetic(colors, isAlive, cosmeticType.hat, hat, mod),
 				getCosmetic(colors, isAlive, cosmeticType.hat_back, hat, mod),
-				getCosmetic(colors, isAlive, cosmeticType.hat, skin, mod),
+				customSkin ? Promise.resolve(customSkin) : getCosmetic(colors, isAlive, cosmeticType.hat, skin, mod),
 				getCosmetic(colors, isAlive, cosmeticType.hat, visor, mod),
 			]);
 			const nextHatImg = {
@@ -309,7 +319,9 @@ function Canvas({
 				dementions: {
 					hat: getHatDementions(hat, mod),
 					visor: getHatDementions(visor, mod),
-					skin: getHatDementions(skin, mod),
+				skin: customSkin
+					? { top: '-52%', width: '140%', left: '-18px' }
+					: getHatDementions(skin, mod),
 				},
 			};
 			if (!disposed) setHatImg(nextHatImg);
@@ -318,11 +330,14 @@ function Canvas({
 		return () => {
 			disposed = true;
 		};
-	}, [color, hat, skin, visor, isAlive, primaryColor, secondaryColor, mod]);
+	}, [color, hat, skin, visor, isAlive, primaryColor, secondaryColor, mod, customSkin]);
 
 	const classes = useCanvasStyles({
 		isAlive,
-		dementions: hatImg.dementions,
+		dementions: customSkin ? {
+			...hatImg.dementions,
+			skin: { top: '-52%', width: '140%', left: '-18px' },
+		} : hatImg.dementions,
 		lookLeft,
 		size,
 		paddingLeft: -7,
@@ -353,6 +368,16 @@ function Canvas({
 		.filter(Boolean)
 		.join(' ');
 	const avatarStyle = { '--talking-border-color': borderColor } as React.CSSProperties;
+	const bodyMaskStyle = bodyMask ? {
+		WebkitMaskImage: `url(${bodyMask})`,
+		maskImage: `url(${bodyMask})`,
+		WebkitMaskSize: '140% auto',
+		maskSize: '140% auto',
+		WebkitMaskPosition: `${-25 + Math.max(2, size / 40) / 2}px ${size * -0.3}px`,
+		maskPosition: `${-25 + Math.max(2, size / 40) / 2}px ${size * -0.3}px`,
+		WebkitMaskRepeat: 'no-repeat' as const,
+		maskRepeat: 'no-repeat' as const,
+	} : undefined;
 
 	return (
 		<>
@@ -368,6 +393,7 @@ function Canvas({
 						transform: 'unset',
 					}}
 				>
+					<div style={{ position: 'absolute', inset: 0, zIndex: 2, ...bodyMaskStyle }}>
 					<img
 						src={hatImg.base}
 						className={classes.base}
@@ -378,8 +404,9 @@ function Canvas({
 						}}
 						alt=""
 					/>
+					</div>
 
-					<img src={hatImg.skin} className={classes.skin} onError={onerror} onLoad={onload} alt="" />
+					<img src={customSkin || hatImg.skin} className={classes.skin} onError={onerror} onLoad={onload} alt="" />
 					{overflow && hatElement}
 				</div>
 				{!overflow && hatElement}

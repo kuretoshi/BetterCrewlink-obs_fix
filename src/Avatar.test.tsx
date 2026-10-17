@@ -48,3 +48,18 @@ test('loads a skin after cosmetic metadata arrives despite voice-state rerenders
 	await waitFor(() => expect(container.querySelector('img[src="skin-image.png"]')).not.toBeNull());
 	expect(mockGetCosmetic.mock.calls.filter((call) => call[2] === 0)).toHaveLength(1);
 });
+
+test('shows a relayed NoS or SNR skin immediately when the image arrives', async () => {
+	const mockGetCosmetic = getCosmetic as jest.Mock;
+	mockGetCosmetic.mockResolvedValue('');
+	(initializeHats as jest.Mock).mockReturnValue(new Promise(() => {}));
+	const player = {
+		colorId: 0, hatId: '', visorId: '', skinId: 'Modded_Skin',
+		realColor: ['#C51111', '#7A0838'], bugged: false,
+	} as overlayPlayer;
+	const props = { player, talking: false, borderColor: 'red', isAlive: true,
+		size: 100, mod: 'NoS' as const };
+	const { container, rerender } = render(<Avatar {...props} />);
+	rerender(<Avatar {...props} customSkin="data:image/png;base64,YWJj" />);
+	await waitFor(() => expect(container.querySelector('img[src="data:image/png;base64,YWJj"]')).not.toBeNull());
+});
