@@ -40,6 +40,7 @@ export interface OtherTalking {
 
 
 export interface VoiceState {
+	oldMeetingHud?: boolean;
 	assetSession?: string;
 	overlayState: OverlayState
 	otherTalking: OtherTalking;

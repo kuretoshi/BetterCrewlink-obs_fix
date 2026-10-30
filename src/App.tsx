@@ -60,6 +60,36 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+function nosMeetingPlayerStyle(
+  width: number,
+  height: number,
+  viewportWidth: number,
+  viewportHeight: number,
+  count: number,
+  index: number
+): CSSProperties {
+  // NoS More15Helpers changes the vote-area scale and grid at 16/19 players.
+  const columns = count <= 18 ? 3 : 4;
+  const scale = count <= 18 ? 0.95 : 0.76;
+  // UI camera half-height 3; MeetingHud's AspectSize fits its 8.54 * 1.2-wide background.
+  const unit = Math.min(viewportHeight / 6, viewportWidth / (8.54 * 1.2));
+  // VoteOrigin(-3.1, 1.5), ButtonParent(+0.25, 0), sliced background(2.7, 0.63).
+  const originX = -3.1 + 0.25 + (count <= 18 ? 0.1 : -0.355);
+  const originY = 1.5 + (count <= 18 ? 0.145 : 0);
+  const cardWidth = 2.7 * scale * unit;
+  const cardHeight = 0.63 * scale * unit;
+  const columnStep = 2.9 * scale * (count <= 18 ? 1 : 0.974);
+  const rowStep = 0.76 * scale * (count <= 18 ? 0.89 : 1);
+  return {
+    position: 'absolute',
+    width: cardWidth,
+    height: cardHeight,
+    left: width / 2 + (originX + (index % columns) * columnStep) * unit - cardWidth / 2,
+    top: height / 2 - (originY - Math.floor(index / columns) * rowStep) * unit - cardHeight / 2,
+    margin: 0,
+  };
+}
+
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState<[number, number]>([0, 0]);
 
@@ -464,12 +494,17 @@ interface MeetingHudProps {
   voiceState: VoiceState;
 }
 
-const MeetingHud: React.FC<MeetingHudProps> = ({
+export const MeetingHud: React.FC<MeetingHudProps> = ({
   voiceState,
   gameState,
 }: MeetingHudProps) => {
   const [windowWidth, windowheight] = useWindowSize();
 	const [width, height] = useMemo(() => {
+		if (voiceState.oldMeetingHud) {
+			const ratio = 854 / 579;
+			const hudHeight = Math.min(windowheight * 0.96, windowWidth / ratio);
+			return [hudHeight * ratio, hudHeight];
+		}
 		let resultW;
 		let ratio_diff = Math.abs(windowWidth / windowheight - 1.7);
 
@@ -484,12 +519,12 @@ const MeetingHud: React.FC<MeetingHudProps> = ({
 		let resultH = resultW / 1.72;
 		// console.log("Ratio: ", windowWidth, windowheight, ratio.toFixed(1), ratio, Math.round(ratio * 10) / 10, Math.abs(ratio - 1.7))
 		return [resultW, resultH];
-	}, [windowWidth, windowheight]);
+	}, [windowWidth, windowheight, voiceState.oldMeetingHud]);
 
 	const classes = useStyles({
 		width: width,
 		height: height,
-		oldHud: false
+		oldHud: voiceState.oldMeetingHud === true
 	});
   
   const players = useMemo(() => {
@@ -504,13 +539,17 @@ const MeetingHud: React.FC<MeetingHudProps> = ({
       }
       return a.id - b.id;
     });
-  }, [gameState.players]);
+    // The game keeps the tablet order throughout a meeting, even after deaths.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.gameState]);
 
   if (!players || gameState.gameState !== GameState.DISCUSSION) return null;
-  const overlays = players.map((player) => {
+  const largeNosMeeting = voiceState.mod === 'NoS' && voiceState.oldMeetingHud !== true && players.length > 15;
+  const overlays = players.map((player, index) => {
    
 
-    const avatarColors = getAvatarColors(player.realColor, player.nosColor);
+    const livePlayer = gameState.players.find((current) => current.id === player.id) || player;
+    const avatarColors = getAvatarColors(livePlayer.realColor, livePlayer.nosColor);
     const color = (!avatarColors || avatarColors.length === 0)? "#0000" : avatarColors[0];
 
     return (
@@ -518,6 +557,9 @@ const MeetingHud: React.FC<MeetingHudProps> = ({
         key={player.id}
         className={classes.playerContainer}
         style={{
+          ...(largeNosMeeting
+            ? nosMeetingPlayerStyle(width, height, windowWidth, windowheight, players.length, index)
+            : {}),
           opacity: voiceState.otherTalking[player.clientId] || (player.isLocal && voiceState.localTalking) ? 1 : 0,
           border: 'solid',
           borderWidth: '2px',
@@ -531,7 +573,12 @@ const MeetingHud: React.FC<MeetingHudProps> = ({
 
   return (
     <div className={classes.meetingHud}>
-      <div className={classes.tabletContainer}>{overlays}</div>
+      <div
+        className={classes.tabletContainer}
+        style={largeNosMeeting ? { left: 0, top: 0, height: '100%' } : undefined}
+      >
+        {overlays}
+      </div>
     </div>
   ); 
 
