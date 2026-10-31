@@ -1,3 +1,5 @@
+import type { SnrMeeting } from './SnrMeeting';
+
 export interface OverlayState {
 	gameState: GameState;
 	players: overlayPlayer[];
@@ -40,6 +42,7 @@ export interface OtherTalking {
 
 
 export interface VoiceState {
+	snrMeeting?: SnrMeeting;
 	oldMeetingHud?: boolean;
 	assetSession?: string;
 	overlayState: OverlayState

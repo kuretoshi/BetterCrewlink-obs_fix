@@ -7,6 +7,7 @@ import { ISettings } from "./common/ISettings";
 import ioV2 from "socket.io-client";
 import { io as ioV4 } from "socket.io-client-v4";
 import { getAvatarColors } from "./common/AvatarGenerator";
+import { snrMeetingPage } from "./common/SnrMeeting";
 
 export interface playerContainerCss extends CSSProperties {
   '--size': string;
@@ -545,7 +546,9 @@ export const MeetingHud: React.FC<MeetingHudProps> = ({
 
   if (!players || gameState.gameState !== GameState.DISCUSSION) return null;
   const largeNosMeeting = voiceState.mod === 'NoS' && voiceState.oldMeetingHud !== true && players.length > 15;
-  const overlays = players.map((player, index) => {
+  const visiblePlayers = snrMeetingPage(voiceState.mod, gameState.players, voiceState.snrMeeting) ?? players;
+  const overlays = visiblePlayers.map((player, index) => {
+    if (!player) return <div key={`snr-empty-${index}`} className={classes.playerContainer} style={{ opacity: 0 }} />;
    
 
     const livePlayer = gameState.players.find((current) => current.id === player.id) || player;
@@ -555,6 +558,7 @@ export const MeetingHud: React.FC<MeetingHudProps> = ({
     return (
       <div
         key={player.id}
+        data-meeting-player={player.id}
         className={classes.playerContainer}
         style={{
           ...(largeNosMeeting
